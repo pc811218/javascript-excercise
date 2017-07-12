@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+    <meta name="description" content="description" />
+    <meta name="keywords" content="keywords" />
+    <meta name="author" content="author" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="../default.css" media="screen" />
+    <title>Exercise 13 - 8-puzzle</title>
+    <script type="text/javascript" src="../jquery.js"></script>
+    <style type="text/css">
+        .puzzle {
+            position: relative;
+            top: 0px;
+            left: 0px;
+            border: 1px solid #000;
+        }
+        .hide 
+        {
+            visibility: hidden;
+            }
+    </style>
+    <script type="text/javascript">
+        //to record empty position
+        var space;
+
+        //initial puzzle array
+        var parray = [[0, 1, 2], [3, 4, 5], [6, 7, 8]];
+
+        $(document).ready(function () {
+            //set the initial puzzle
+            for (i = 0; i < 9; i++) {
+                part(document.getElementById('pic' + i), i);
+            }
+
+            //my codes here
+            
+            //randomly hide one puzzle (once) (space=?)
+            eliminate();
+            //set onclick event to nearby space puzzle (loop)
+            setNearbyEvent();
+        });
+
+        //call this function to show part of image.
+        function part(block, pos) {
+            x = parseInt(pos / 3);
+            y = pos % 3;
+            x *= -110;
+            y *= -110;
+            block.style.top = x + 'px';
+            block.style.left = y + 'px';
+        }
+
+
+        //hide 1 of 9 (initialize)
+        function eliminate() {
+            var index = parseInt(Math.random() * 10);
+            if (index == 9) {
+                eliminate();
+                return;
+            }
+            hideElement(index);
+            space = index;
+            parray[posToX(space)][posToY(space)] = -1;
+            console.log('space:' + space);
+            //console.log(parray[posToX(space)][posToY(space)]);
+        }
+
+        // hide the element of pos(index)
+        function hideElement(index) {
+            var selector = '#pic' + index;
+            $(selector).addClass('hide');
+        }
+
+        // show the element of pos(index)
+        function showElement(index) {
+            var selector = '#pic' + index;
+            $(selector).removeClass('hide');
+        }
+
+        //calculate Selector [return array(id)] findSelector
+        function findNearby(pos) {
+            var x = posToX(pos);
+            var y = posToY(pos);
+
+            var up = [x - 1, y];
+            var down = [x + 1, y];
+            var left = [x, y - 1];
+            var right = [x, y + 1];
+
+            var udlr = [up, down, left, right];
+            var result = new Array();
+
+            for (var i = 0; i < udlr.length; i++) {
+                var dir = udlr[i];
+                var dirX = dir[0];
+                var dirY = dir[1];
+                var isOkX = dirX >= 0 && dirX <=2;
+                var isOkY = dirY >= 0 && dirY <=2;
+//                console.log('dirX=' + dirX + ', tf:' + isOkX)
+//                console.log('dirY=' + dirY + ', tf:' + isOkY)
+//                console.log('----------------')
+                if (isOkX && isOkY) {
+                    var idx = dirX * 3 + dirY;
+                    result.push('#pic'+idx);    
+                }
+
+            } //end for
+            //console.log(udlr);
+            //console.log(result);
+            return result;  
+        }
+
+        //set click event to puzzle nearby space 
+        function setNearbyEvent() {
+            $('.puzzle').off('click');
+
+            var ids = findNearby(space);
+            $.each(ids, function (idx, id) {
+                puzzleOnClick($(id));
+            });
+            
+        }
+
+        //puzzle click event (only nearby space puzzle)
+        function puzzleOnClick(selector) {
+            selector.on('click', function () {
+                var id = $(this).attr('id');
+                var pos = parseInt(id.substr(3));
+                console.log('clicked: ' + pos);
+
+                //hideElement(pos);
+                swap(parray, pos, space);
+                space = pos;
+                //console.log(parray);
+                //console.log('space: ' + space);
+
+                setPuzzle();
+                setNearbyEvent();
+                //console.log(parray);
+            });
+            
+        }
+
+
+
+        //set all puzzle (hide if 2D array value = -1)
+        function setPuzzle() {
+            //let space puzzle = -1
+            //parray[posToX(space)][posToY(space)] = -1;
+
+            for (var i = 0; i < 9; i++) {
+                showElement(i);
+                var x = posToX(i);
+                var y = posToY(i);
+                var value = parray[x][y];
+                if (value != -1) {
+                    
+                    part(document.getElementById('pic' + i), value);
+                } else {
+                    hideElement(i);
+                }
+                
+            }
+                //console.log(parray[posToX(pos)][posToY(pos)]);
+        }
+
+        //convert pos to x
+        function posToX(pos) {
+            x = parseInt(pos / 3);
+            return x;
+        }
+
+        //convert pos to y
+        function posToY(pos) {
+            y = pos % 3;
+            return y;
+        }
+
+        //swap 2D array value
+        function swap(array,pos1,pos2) {
+            x1 = posToX(pos1);
+            y1 = posToY(pos1);
+            x2 = posToX(pos2);
+            y2 = posToY(pos2);
+
+            var temp = array[x1][y1];
+            array[x1][y1] = array[x2][y2];
+            array[x2][y2] = temp;
+        }
+
+        
+
+    </script>
+</head>
+
+<body>
+    <div class="container2">
+
+        <div class="header">
+            <div class="title">
+                Exercise 13
+                <h1>8-puzzle</h1>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <a href="../index.html">Home</a>
+            <div class="clearer"><span></span>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="content">
+
+                <p>
+                    將一張jpg分割成9塊，隨機去掉一塊，其餘8塊可在畫面上9格移動。
+                    <br/>
+                    <blockquote>Hint: <a target="_blank" href="http://www.w3schools.com/jquery/jquery_css.asp">css</a>
+                    </blockquote>
+                </p>
+
+                <p>
+                    <table>
+                        <tr>
+                            <td>
+                                <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                    <img id="pic0" src="img/ex4img.jpg" class="puzzle" />
+                                </div>
+                            </td>
+                            <td>
+                                <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                    <img id="pic1" src="img/ex4img.jpg" class="puzzle" />
+                                </div>
+                            </td>
+                            <td>
+                                <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                    <img id="pic2" src="img/ex4img.jpg" class="puzzle" />
+                                </div>
+                            </td>
+                        </tr>
+                        <td>
+                            <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                <img id="pic3" src="img/ex4img.jpg" class="puzzle" />
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                <img id="pic4" src="img/ex4img.jpg" class="puzzle" />
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                <img id="pic5" src="img/ex4img.jpg" class="puzzle" />
+                            </div>
+                        </td>
+                        </tr>
+                        </tr>
+                        <td>
+                            <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                <img id="pic6" src="img/ex4img.jpg" class="puzzle" />
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                <img id="pic7" src="img/ex4img.jpg" class="puzzle" />
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width:110px;height:110px;border:1px;overflow:hidden;">
+                                <img id="pic8" src="img/ex4img.jpg" class="puzzle" />
+                            </div>
+                        </td>
+                        </tr>
+                    </table>
+
+                </p>
+
+                <script type="text/javascript">
+                </script>
+
+            </div>
+            <div class="clearer"><span></span>
+            </div>
+
+        </div>
+
+        <div class="footer">&copy; 2006 <a href="index.html">Website.com</a>. Valid <a href="http://jigsaw.w3.org/css-validator/check/referer">CSS</a> &amp; <a href="http://validator.w3.org/check?uri=referer">XHTML</a>. Template design by <a href="http://templates.arcsin.se">Arcsin</a>
+        </div>
+    </div>
+</body>
+
+</html>
